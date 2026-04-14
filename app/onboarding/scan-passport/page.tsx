@@ -89,37 +89,41 @@ export default function ScanPassportPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const detectionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Simulate auto-detection after 3 seconds of scanning
+  // Simulate auto-detection after 1.2s of scanning
   useEffect(() => {
     if (scanState === "scanning") {
       detectionTimerRef.current = setTimeout(() => {
         setScanState("detected");
-      }, 3000);
+      }, 1200);
     }
     return () => {
       if (detectionTimerRef.current) clearTimeout(detectionTimerRef.current);
     };
   }, [scanState]);
 
-  // Simulate auto-capture after detection
+  // Auto-capture 500ms after detection
   useEffect(() => {
     if (scanState === "detected") {
-      const t = setTimeout(() => {
-        setScanState("capturing");
-      }, 1500);
+      const t = setTimeout(() => setScanState("capturing"), 500);
       return () => clearTimeout(t);
     }
   }, [scanState]);
 
-  // Simulate verification after capture
+  // Move to verifying 400ms after capture
   useEffect(() => {
     if (scanState === "capturing") {
-      const t = setTimeout(() => {
-        setScanState("verifying");
-      }, 1200);
+      const t = setTimeout(() => setScanState("verifying"), 400);
       return () => clearTimeout(t);
     }
   }, [scanState]);
+
+  // Auto-navigate to passport-verified 800ms after verifying starts
+  useEffect(() => {
+    if (scanState === "verifying") {
+      const t = setTimeout(() => router.push("/onboarding/passport-verified"), 800);
+      return () => clearTimeout(t);
+    }
+  }, [scanState, router]);
 
   const retry = useCallback(() => {
     setScanState("scanning");
