@@ -7,9 +7,9 @@ interface KYCLayoutProps {
 
 export default function KYCLayout({ activeStep, children }: KYCLayoutProps) {
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className="flex h-screen overflow-hidden bg-white">
       <KYCSidebar activeStep={activeStep} />
-      <main className="flex-1 bg-white flex flex-col items-center overflow-y-auto min-h-screen py-16 px-6">
+      <main className="flex-1 bg-white flex flex-col items-center overflow-y-auto py-16 px-6">
         {/* Carlofty Logo */}
         <div className="mb-12 self-start ml-3">
           <img

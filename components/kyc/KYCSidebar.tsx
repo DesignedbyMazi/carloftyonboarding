@@ -87,55 +87,56 @@ interface KYCSidebarProps {
 
 export default function KYCSidebar({ activeStep }: KYCSidebarProps) {
   return (
-    <aside className="bg-[#fafafa] flex flex-col h-full items-start justify-between overflow-hidden shadow-[0px_4px_6px_-2px_rgba(13,13,18,0.03)] shrink-0 w-[321px]">
-      <div className="flex flex-1 flex-col items-start justify-between w-full py-10">
-        <div className="flex flex-col w-full">
-          <div className="flex flex-col gap-6 items-start px-8 w-full">
-            <p className="text-xs font-medium text-[#777] tracking-[0.24px] leading-4 uppercase">
-              Complete Your Profile
-            </p>
-            <div className="flex flex-col items-start w-full">
-              {steps.map((step, idx) => {
-                const status = getStepStatus(step, activeStep);
-                const isLast = idx === steps.length - 1;
-                return (
-                  <div key={step.id}>
-                    <div className="flex gap-3 items-start w-full">
-                      <div className="flex flex-col items-center shrink-0">
-                        <StepBadge status={status} number={step.number} />
-                        {!isLast && <DashedLine completed={status === "completed"} />}
-                      </div>
-                      <div className="flex flex-col gap-0.5 items-start justify-center flex-1 min-w-0 min-h-[38px]">
-                        <p
-                          className={`text-sm font-medium tracking-[0.21px] leading-5 ${
-                            status === "pending"
-                              ? "text-[#959595]"
-                              : status === "active"
-                              ? "text-[#2d2d2d]"
-                              : "text-[#5a5a5a]"
-                          }`}
-                        >
-                          {step.title}
-                        </p>
-                        <p
-                          className={`text-xs tracking-[0.24px] leading-4 ${
-                            status === "pending"
-                              ? "text-[#959595]"
-                              : status === "active"
-                              ? "text-[#5a5a5a]"
-                              : "text-[#959595]"
-                          }`}
-                        >
-                          {step.subtitle}
-                        </p>
-                      </div>
-                    </div>
+    <aside className="bg-[#fafafa] flex flex-col h-full w-[321px] shrink-0 shadow-[0px_4px_6px_-2px_rgba(13,13,18,0.03)]">
+      {/* Top: steps */}
+      <div className="flex-1 flex flex-col px-8 pt-10 w-full overflow-y-auto">
+        <p className="text-xs font-medium text-[#777] tracking-[0.24px] leading-4 uppercase mb-6">
+          Complete Your Profile
+        </p>
+        <div className="flex flex-col items-start w-full">
+          {steps.map((step, idx) => {
+            const status = getStepStatus(step, activeStep);
+            const isLast = idx === steps.length - 1;
+            return (
+              <div key={step.id} className="w-full">
+                <div className="flex gap-3 items-start w-full">
+                  <div className="flex flex-col items-center shrink-0">
+                    <StepBadge status={status} number={step.number} />
+                    {!isLast && <DashedLine completed={status === "completed"} />}
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <div className="flex flex-col gap-0.5 items-start justify-center flex-1 min-w-0 min-h-[38px]">
+                    <p
+                      className={`text-sm font-medium tracking-[0.21px] leading-5 ${
+                        status === "pending"
+                          ? "text-[#959595]"
+                          : status === "active"
+                          ? "text-[#2d2d2d]"
+                          : "text-[#5a5a5a]"
+                      }`}
+                    >
+                      {step.title}
+                    </p>
+                    <p
+                      className={`text-xs tracking-[0.24px] leading-4 ${
+                        status === "pending"
+                          ? "text-[#959595]"
+                          : status === "active"
+                          ? "text-[#5a5a5a]"
+                          : "text-[#959595]"
+                      }`}
+                    >
+                      {step.subtitle}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
+      </div>
+
+      {/* Bottom: support widget always pinned to bottom */}
+      <div className="shrink-0 pb-10">
         <SupportWidget />
       </div>
     </aside>
