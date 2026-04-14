@@ -122,7 +122,7 @@ export default function PersonalDetailsPage() {
 
   return (
     <KYCLayout activeStep="basic-info">
-      <div className="flex flex-col gap-10 items-start w-[472px] max-w-full">
+      <div className="flex flex-col gap-10 items-center w-[472px] max-w-full">
         {/* Header */}
         <div className="flex flex-col gap-1 items-center text-center w-full">
           <h1 className="text-2xl font-medium text-[#2d2d2d] leading-8 w-full">
