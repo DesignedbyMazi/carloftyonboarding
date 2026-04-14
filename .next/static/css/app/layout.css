@@ -544,6 +544,9 @@ video {
 .visible {
   visibility: visible;
 }
+.fixed {
+  position: fixed;
+}
 .absolute {
   position: absolute;
 }
@@ -578,6 +581,12 @@ video {
 .top-8 {
   top: 2rem;
 }
+.left-0 {
+  left: 0px;
+}
+.z-20 {
+  z-index: 20;
+}
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -596,6 +605,9 @@ video {
 }
 .mt-2 {
   margin-top: 0.5rem;
+}
+.ml-\[321px\] {
+  margin-left: 321px;
 }
 .block {
   display: block;
@@ -639,6 +651,9 @@ video {
 }
 .h-screen {
   height: 100vh;
+}
+.h-6 {
+  height: 1.5rem;
 }
 .min-h-\[24px\] {
   min-height: 24px;
@@ -700,6 +715,9 @@ video {
 .w-px {
   width: 1px;
 }
+.w-6 {
+  width: 1.5rem;
+}
 .min-w-0 {
   min-width: 0px;
 }
@@ -754,6 +772,9 @@ video {
 .items-center {
   align-items: center;
 }
+.justify-start {
+  justify-content: flex-start;
+}
 .justify-center {
   justify-content: center;
 }
@@ -792,6 +813,9 @@ video {
 }
 .gap-px {
   gap: 1px;
+}
+.gap-0 {
+  gap: 0px;
 }
 .self-start {
   align-self: flex-start;
@@ -1019,6 +1043,9 @@ video {
   font-size: 0.75rem;
   line-height: 1rem;
 }
+.text-\[12px\] {
+  font-size: 12px;
+}
 .font-medium {
   font-weight: 500;
 }
@@ -1048,6 +1075,9 @@ video {
 }
 .leading-relaxed {
   line-height: 1.625;
+}
+.leading-\[16px\] {
+  line-height: 16px;
 }
 .tracking-\[-0\.084px\] {
   letter-spacing: -0.084px;
