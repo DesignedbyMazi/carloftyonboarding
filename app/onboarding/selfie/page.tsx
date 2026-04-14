@@ -84,7 +84,7 @@ export default function SelfiePage() {
           </button>
         ) : (
           <button
-            onClick={() => router.push("/onboarding/complete")}
+            onClick={() => router.push("/onboarding/final-step")}
             className="w-full bg-[#171717] text-white rounded-2xl py-3 text-base font-medium leading-6 tracking-[0.08px] hover:bg-[#333] transition-colors"
           >
             Continue

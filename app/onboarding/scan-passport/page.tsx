@@ -1,13 +1,16 @@
 "use client";
 import KYCLayout from "@/components/kyc/KYCLayout";
 import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
 
 type ScanState =
   | "scanning"      // camera active, looking for passport
   | "detected"      // green border, auto-capturing
   | "capturing"     // capturing + uploading
   | "verifying"     // verifying passport
+  | "done"          // verified — shows active Continue button
   | "failed"        // capture failed
   | "switch-device";// show QR code to switch to phone
 
@@ -83,57 +86,62 @@ function LoadingSpinner() {
   );
 }
 
-export default function ScanPassportPage() {
+// Suspense wrapper required by Next.js when useSearchParams is used
+export default function ScanPassportPageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <ScanPassportPage />
+    </Suspense>
+  );
+}
+
+function ScanPassportPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isMobile = searchParams.get("device") === "mobile";
+
+  // Mobile users land directly into scanning — skip the switch-device prompt
   const [scanState, setScanState] = useState<ScanState>("scanning");
   const videoRef = useRef<HTMLVideoElement>(null);
   const detectionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Simulate auto-detection after 1.2s of scanning
+  // Chain: scanning → detected → capturing → verifying → done
+  // Each timeout is independent; router stored in ref to avoid dependency issues
+  const routerRef = useRef(router);
+  useEffect(() => { routerRef.current = router; }, [router]);
+
   useEffect(() => {
-    if (scanState === "scanning") {
-      detectionTimerRef.current = setTimeout(() => {
-        setScanState("detected");
-      }, 1200);
-    }
-    return () => {
-      if (detectionTimerRef.current) clearTimeout(detectionTimerRef.current);
+    const timings: Partial<Record<ScanState, { next: ScanState | "navigate"; ms: number }>> = {
+      scanning:  { next: "detected",  ms: 800  },
+      detected:  { next: "capturing", ms: 300  },
+      capturing: { next: "verifying", ms: 300  },
+      verifying: { next: "done",      ms: 600  },
     };
-  }, [scanState]);
 
-  // Auto-capture 500ms after detection
-  useEffect(() => {
-    if (scanState === "detected") {
-      const t = setTimeout(() => setScanState("capturing"), 500);
-      return () => clearTimeout(t);
-    }
-  }, [scanState]);
+    const cfg = timings[scanState];
+    if (!cfg) return;
 
-  // Move to verifying 400ms after capture
-  useEffect(() => {
-    if (scanState === "capturing") {
-      const t = setTimeout(() => setScanState("verifying"), 400);
-      return () => clearTimeout(t);
-    }
-  }, [scanState]);
+    const t = setTimeout(() => {
+      if (cfg.next === "navigate") {
+        routerRef.current.push("/onboarding/passport-verified");
+      } else {
+        setScanState(cfg.next as ScanState);
+      }
+    }, cfg.ms);
 
-  // Auto-navigate to passport-verified 800ms after verifying starts
-  useEffect(() => {
-    if (scanState === "verifying") {
-      const t = setTimeout(() => router.push("/onboarding/passport-verified"), 800);
-      return () => clearTimeout(t);
-    }
-  }, [scanState, router]);
+    return () => clearTimeout(t);
+  }, [scanState]);
 
   const retry = useCallback(() => {
     setScanState("scanning");
   }, []);
 
-  const isScanning = scanState === "scanning";
-  const isDetected = scanState === "detected";
-  const isCapturing = scanState === "capturing";
-  const isVerifying = scanState === "verifying";
-  const isFailed = scanState === "failed";
+  const isScanning    = scanState === "scanning";
+  const isDetected    = scanState === "detected";
+  const isCapturing   = scanState === "capturing";
+  const isVerifying   = scanState === "verifying";
+  const isDone        = scanState === "done";
+  const isFailed      = scanState === "failed";
   const isSwitchDevice = scanState === "switch-device";
 
   // Switch-device / QR code view
@@ -156,7 +164,7 @@ export default function ScanPassportPage() {
 
         {/* Scanner area */}
         <div className="flex flex-col items-center gap-8 w-full">
-          {isCapturing || isVerifying ? (
+          {isCapturing || isVerifying || isDone ? (
             /* Captured state — show passport image with green border */
             <div className="relative w-[363px] h-[250px]">
               <div className="absolute inset-[19px_17.5px] rounded-2xl overflow-hidden border-2 border-[#22c55e]">
@@ -179,7 +187,7 @@ export default function ScanPassportPage() {
           )}
 
           {/* MRZ text below scanner */}
-          {(isCapturing || isVerifying) && (
+          {(isCapturing || isVerifying || isDone) && (
             <div className="text-center text-[10px] font-mono text-[#555] leading-relaxed">
               <div>Q&lt;USAJOHN&lt;&lt;DOE&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</div>
               <div>C02374927457IUSA333589748223748202827190372368191...</div>
@@ -187,17 +195,28 @@ export default function ScanPassportPage() {
           )}
 
           {/* Status messages / CTAs */}
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-3 w-full max-w-[400px]">
+            {/* Verifying — spinner, disabled */}
             {isVerifying && (
               <button
-                onClick={() => router.push("/onboarding/passport-verified")}
                 disabled
-                className="flex items-center gap-2 w-full max-w-[400px] bg-[#e5e5e5] text-[#2d2d2d] rounded-2xl py-3 px-6 text-base font-medium leading-6 tracking-[0.08px] justify-center cursor-not-allowed"
+                className="flex items-center gap-2 w-full bg-[#e5e5e5] text-[#2d2d2d] rounded-2xl py-3 px-6 text-base font-medium leading-6 tracking-[0.08px] justify-center cursor-not-allowed"
               >
                 <LoadingSpinner />
                 Verifying passport...
               </button>
             )}
+
+            {/* Done — active Continue button */}
+            {isDone && (
+              <button
+                onClick={() => router.push("/onboarding/passport-verified")}
+                className="flex items-center justify-center gap-2 w-full bg-[#171717] text-white rounded-2xl py-3 px-6 text-base font-medium leading-6 tracking-[0.08px] hover:bg-[#333] transition-colors"
+              >
+                Continue
+              </button>
+            )}
+
 
             {isCapturing && (
               <div className="flex flex-col items-center gap-2">
@@ -237,8 +256,8 @@ export default function ScanPassportPage() {
             )}
           </div>
 
-          {/* Switch device CTA — shown for laptop users */}
-          {(isScanning || isFailed) && (
+          {/* Switch device CTA — hidden when already on mobile */}
+          {(isScanning || isFailed) && !isMobile && (
             <button
               onClick={() => setScanState("switch-device")}
               className="flex items-center gap-2 text-sm text-[#335cff] font-medium hover:underline transition-colors mt-2"
@@ -274,37 +293,67 @@ export default function ScanPassportPage() {
 }
 
 function SwitchDeviceView({ onBack }: { onBack: () => void }) {
+  // Build the mobile URL from the current origin so it works on both
+  // localhost and production (e.g. carloftyonboarding.vercel.app)
+  const [mobileUrl, setMobileUrl] = useState("");
+
+  useEffect(() => {
+    const url = `${window.location.origin}/onboarding/scan-passport?device=mobile`;
+    setMobileUrl(url);
+  }, []);
+
   return (
     <KYCLayout activeStep="government-id">
       <div className="flex flex-col gap-10 items-center w-[472px] max-w-full">
+        {/* Header */}
         <div className="flex flex-col gap-1 items-center text-center w-full">
           <h1 className="text-2xl font-medium text-[#2d2d2d] leading-8 w-full">
-            Scan Your Passport
+            Continue on Your Phone
           </h1>
           <p className="text-sm text-[#5a5a5a] leading-5 tracking-[0.14px] w-full">
-            Scan the QR code below with your phone to continue the passport scan.
+            Scan the QR code below with your phone camera to continue the passport scan from where you left off.
           </p>
         </div>
 
-        {/* QR Code */}
-        <div className="flex flex-col items-center gap-6">
-          <div className="p-4 bg-white border border-[#eaeaea] rounded-2xl shadow-sm">
-            <img
-              src="https://www.figma.com/api/mcp/asset/86d7affd-af88-4143-9b98-9c89f262d08e"
-              alt="QR Code"
-              className="w-[200px] h-[200px] object-contain"
-            />
+        {/* Live generated QR code */}
+        <div className="flex flex-col items-center gap-5">
+          <div className="p-5 bg-white border border-[#eaeaea] rounded-2xl shadow-sm">
+            {mobileUrl ? (
+              <QRCodeSVG
+                value={mobileUrl}
+                size={200}
+                bgColor="#ffffff"
+                fgColor="#171717"
+                level="M"
+                includeMargin={false}
+              />
+            ) : (
+              // Skeleton while window.location resolves
+              <div className="w-[200px] h-[200px] bg-[#f0f0f0] rounded-lg animate-pulse" />
+            )}
           </div>
-          <p className="text-xs text-[#777] tracking-[0.24px] text-center leading-4 max-w-[300px]">
-            Open your phone's camera and scan the QR code to continue the verification on your mobile device.
+
+          {/* Show the URL so users know where it points */}
+          {mobileUrl && (
+            <p className="text-[11px] text-[#aaa] tracking-wide text-center break-all max-w-[260px]">
+              {mobileUrl}
+            </p>
+          )}
+
+          <p className="text-xs text-[#777] tracking-[0.24px] text-center leading-5 max-w-[300px]">
+            Point your phone camera at the QR code — no app needed. It will open directly to the passport scan step.
           </p>
         </div>
 
+        {/* Back link */}
         <button
           onClick={onBack}
-          className="text-sm text-[#335cff] font-medium hover:underline"
+          className="flex items-center gap-1.5 text-sm text-[#335cff] font-medium hover:underline transition-colors"
         >
-          ← Back to camera scan
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Back to camera scan
         </button>
       </div>
     </KYCLayout>
