@@ -7,18 +7,13 @@ export default function GettingStartedPage() {
 
   return (
     <KYCLayout activeStep="basic-info">
-      <div className="flex flex-col gap-6 items-center w-[543px] max-w-full">
-        {/* Header — centered directly below the logo */}
+      <div className="flex flex-col gap-6 items-center w-full max-w-[543px]">
         <div className="flex flex-col gap-1 items-center text-center w-full">
-          <h1 className="text-2xl font-semibold text-[#2d2d2d] leading-8 w-full">
-            Getting Started
-          </h1>
-          <p className="text-sm text-[#5a5a5a] leading-5 tracking-[0.14px] w-full">
+          <h1 className="text-xl lg:text-2xl font-semibold text-[#2d2d2d] leading-8">Getting Started</h1>
+          <p className="text-sm text-[#5a5a5a] leading-5 tracking-[0.14px] max-w-full">
             We&apos;ll need a few details to verify your identity and get your account fully set up.
           </p>
         </div>
-
-        {/* CTA */}
         <div className="w-full">
           <button
             onClick={() => router.push("/onboarding/personal-details")}

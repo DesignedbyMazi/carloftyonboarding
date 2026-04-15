@@ -1,6 +1,6 @@
 import SupportWidget from "./SupportWidget";
 
-export type KYCStep = "basic-info" | "government-id" | "selfie";
+export type KYCStep = "basic-info" | "government-id" | "business-info";
 export type StepStatus = "pending" | "active" | "completed";
 
 interface Step {
@@ -24,17 +24,18 @@ const steps: Step[] = [
     subtitle: "Provide Legal Identification",
   },
   {
-    id: "selfie",
+    id: "business-info",
     number: 3,
-    title: "Selfie",
-    subtitle: "Provide a capture for your verification",
+    title: "Business Information",
+    subtitle: "Verify Your Business Details",
   },
 ];
 
+const stepOrder: KYCStep[] = ["basic-info", "government-id", "business-info"];
+
 function getStepStatus(step: Step, activeStep: KYCStep): StepStatus {
-  const order: KYCStep[] = ["basic-info", "government-id", "selfie"];
-  const stepIdx = order.indexOf(step.id);
-  const activeIdx = order.indexOf(activeStep);
+  const stepIdx = stepOrder.indexOf(step.id);
+  const activeIdx = stepOrder.indexOf(activeStep);
   if (stepIdx < activeIdx) return "completed";
   if (stepIdx === activeIdx) return "active";
   return "pending";
@@ -46,13 +47,7 @@ function StepBadge({ status, number }: { status: StepStatus; number: number }) {
       <div className="shrink-0 w-6 h-6">
         <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
           <circle cx="12" cy="12" r="12" fill="#22c55e" />
-          <path
-            d="M7 12l3.5 3.5L17 8.5"
-            stroke="white"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <path d="M7 12l3.5 3.5L17 8.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
     );
@@ -95,10 +90,7 @@ interface KYCSidebarProps {
 
 export default function KYCSidebar({ activeStep }: KYCSidebarProps) {
   return (
-    // h-full fills the KYCLayout flex container — no fixed, no sticky, no h-screen
     <aside className="h-full w-[321px] shrink-0 flex flex-col bg-[#fafafa] shadow-[0px_4px_6px_-2px_rgba(13,13,18,0.03)]">
-
-      {/* Steps — flex-1 takes all space above the support widget */}
       <div className="flex-1 overflow-y-auto px-8 pt-10">
         <p
           className="font-medium text-[#777777] tracking-[0.24px] uppercase mb-6"
@@ -114,14 +106,11 @@ export default function KYCSidebar({ activeStep }: KYCSidebarProps) {
 
             return (
               <div key={step.id} className="flex gap-3">
-
-                {/* LEFT: badge (24×24) + connector (1×64), gap 0 between them */}
                 <div className="flex flex-col items-center w-6 shrink-0">
                   <StepBadge status={status} number={step.number} />
                   {!isLast && <Connector completed={status === "completed"} />}
                 </div>
 
-                {/* RIGHT: title + subtitle, top-aligned, height matches badge+connector */}
                 <div
                   className="flex flex-col justify-start gap-0.5 flex-1 min-w-0"
                   style={{ height: isLast ? "auto" : 88 }}
@@ -131,12 +120,7 @@ export default function KYCSidebar({ activeStep }: KYCSidebarProps) {
                     style={{
                       fontSize: 14,
                       lineHeight: "20px",
-                      color:
-                        status === "active"
-                          ? "#2d2d2d"
-                          : status === "completed"
-                          ? "#5a5a5a"
-                          : "#959595",
+                      color: status === "active" ? "#2d2d2d" : status === "completed" ? "#5a5a5a" : "#959595",
                     }}
                   >
                     {step.title}
@@ -152,18 +136,15 @@ export default function KYCSidebar({ activeStep }: KYCSidebarProps) {
                     {step.subtitle}
                   </p>
                 </div>
-
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Support widget — pinned to bottom */}
       <div className="shrink-0 pb-10">
         <SupportWidget />
       </div>
-
     </aside>
   );
 }
