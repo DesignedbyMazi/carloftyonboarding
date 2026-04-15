@@ -186,7 +186,7 @@ export default function GovernmentIDPage() {
         <div className="flex flex-col gap-3 w-full">
           <button
             disabled={!file}
-            onClick={() => router.push("/onboarding/business-info")}
+            onClick={() => router.push("/onboarding/business-details")}
             className={`w-full rounded-2xl py-3 text-base font-medium leading-6 tracking-[0.08px] transition-colors ${
               file ? "bg-[#171717] text-white hover:bg-[#333]" : "bg-[#e5e5e5] text-[#959595] cursor-not-allowed"
             }`}

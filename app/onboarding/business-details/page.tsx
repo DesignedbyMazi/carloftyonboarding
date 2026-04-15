@@ -144,7 +144,7 @@ export default function BusinessDetailsPage() {
         {/* CTA */}
         <button
           disabled={!isValid}
-          onClick={() => router.push("/onboarding/complete")}
+          onClick={() => router.push("/onboarding/business-info")}
           className={`w-full rounded-2xl py-3 text-base font-medium leading-6 tracking-[0.08px] transition-colors ${
             isValid ? "bg-[#171717] text-white hover:bg-[#333]" : "bg-[#e5e5e5] text-[#959595] cursor-not-allowed"
           }`}
