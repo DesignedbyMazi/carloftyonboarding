@@ -8,7 +8,11 @@
       "Bash(npx tsc:*)",
       "Bash(npx next:*)",
       "Bash(npm run:*)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "mcp__9d9802d6-8eed-4526-bd06-851f74d881b7__get_design_context",
+      "Bash(python3 -c ':*)",
+      "Bash(node -e ':*)",
+      "mcp__9d9802d6-8eed-4526-bd06-851f74d881b7__get_screenshot"
     ]
   }
 }
