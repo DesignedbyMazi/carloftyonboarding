@@ -126,8 +126,33 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     title: "Wallet Balance",
-    description: "Top up your Carlofty wallet to fund auction bids and pay for vehicles directly from your available balance.",
+    description: "Click the Wallet tab to manage your NGN and USD balances. All auction payments are made in USD.",
     pos: "top-right",
+  },
+  {
+    title: "Your Wallets",
+    description: "The Wallet tab holds two balances — your NGN (Naira) wallet and your USD (Dollar) wallet. All auction payments are made in USD, so you must fund NGN first then convert.",
+    pos: "top-right",
+  },
+  {
+    title: "Add Money",
+    description: "Fund your NGN wallet with Naira using Paystack. Once funds are confirmed, your Naira balance updates instantly and you're ready to convert.",
+    pos: "top-right",
+  },
+  {
+    title: "Convert NGN → USD",
+    description: "Convert your Naira balance to USD at the live exchange rate. Payments to auction houses are strictly in USD — convert before attempting to pay.",
+    pos: "top-right",
+  },
+  {
+    title: "Make a Payment",
+    description: "Pay auction houses directly from your USD wallet by entering the recipient's bank details, amount, and a payment reference. No intermediaries.",
+    pos: "top-right",
+  },
+  {
+    title: "Saved Recipients",
+    description: "Save frequently used auction accounts as recipients so you can send money in one tap. Edit or delete saved recipients any time.",
+    pos: "bottom-right",
   },
   {
     title: "Time & Date Filters",
@@ -725,6 +750,354 @@ function RecentActivity() {
   );
 }
 
+// ─── Wallet Modals ────────────────────────────────────────────────────────────
+function AddMoneyModal({ onClose }: { onClose: () => void }) {
+  const [amount, setAmount] = useState("");
+  return (
+    <div className="fixed inset-0 z-[300] bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-[400px] shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-[16px] font-bold text-[#111827]">Add Money</h3>
+          <button onClick={onClose} className="p-1 rounded-lg text-[#9ca3af] hover:text-[#374151] hover:bg-[#f3f4f6] transition-colors">
+            <Icon d="M18 6L6 18M6 6l12 12" size={16} strokeWidth={2.2} />
+          </button>
+        </div>
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Amount (NGN)</label>
+            <input
+              type="number"
+              placeholder="Enter amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#171717] transition-colors"
+            />
+          </div>
+          <div className="flex items-start gap-2.5 bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl px-3 py-2.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#16a34a" className="shrink-0 mt-0.5">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+            </svg>
+            <p className="text-[11px] text-[#166534] leading-4">Powered by Paystack. Funds reflect instantly after payment confirmation.</p>
+          </div>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 border-2 border-[#e5e7eb] text-[#374151] rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#f9fafb] transition-colors"
+            >
+              Cancel
+            </button>
+            <button className="flex-1 bg-[#171717] text-white rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#333] transition-colors">
+              Proceed to Pay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MakePaymentModal({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState({ bank: "", account: "", amount: "", reference: "" });
+  const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+  return (
+    <div className="fixed inset-0 z-[300] bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-[400px] shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-[16px] font-bold text-[#111827]">Make Payment</h3>
+          <button onClick={onClose} className="p-1 rounded-lg text-[#9ca3af] hover:text-[#374151] hover:bg-[#f3f4f6] transition-colors">
+            <Icon d="M18 6L6 18M6 6l12 12" size={16} strokeWidth={2.2} />
+          </button>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Bank Name</label>
+            <input
+              type="text"
+              placeholder="e.g. Chase Bank"
+              value={form.bank}
+              onChange={(e) => handleChange("bank", e.target.value)}
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#171717] transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Account Number</label>
+            <input
+              type="text"
+              placeholder="ABA routing / account number"
+              value={form.account}
+              onChange={(e) => handleChange("account", e.target.value)}
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#171717] transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Account Name</label>
+            <input
+              type="text"
+              placeholder="Will auto-populate"
+              disabled
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none bg-[#f9fafb] text-[#9ca3af] cursor-not-allowed"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Amount (USD)</label>
+            <input
+              type="number"
+              placeholder="0.00"
+              value={form.amount}
+              onChange={(e) => handleChange("amount", e.target.value)}
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#171717] transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Payment Reference <span className="text-[#9ca3af] font-normal">(optional)</span></label>
+            <input
+              type="text"
+              placeholder="e.g. Invoice #12345"
+              value={form.reference}
+              onChange={(e) => handleChange("reference", e.target.value)}
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#171717] transition-colors"
+            />
+          </div>
+          <div className="flex items-start gap-2.5 bg-[#fffbeb] border border-[#fde68a] rounded-xl px-3 py-2.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0 mt-0.5">
+              <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#d97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <p className="text-[11px] text-[#92400e] leading-4">Payments are processed in USD only. Ensure your USD balance is sufficient.</p>
+          </div>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 border-2 border-[#e5e7eb] text-[#374151] rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#f9fafb] transition-colors"
+            >
+              Cancel
+            </button>
+            <button className="flex-1 bg-[#171717] text-white rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#333] transition-colors">
+              Send Payment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddRecipientModal({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState({ name: "", bank: "", account: "", accountType: "Checking" });
+  const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+  return (
+    <div className="fixed inset-0 z-[300] bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-[400px] shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-[16px] font-bold text-[#111827]">Add Recipient</h3>
+          <button onClick={onClose} className="p-1 rounded-lg text-[#9ca3af] hover:text-[#374151] hover:bg-[#f3f4f6] transition-colors">
+            <Icon d="M18 6L6 18M6 6l12 12" size={16} strokeWidth={2.2} />
+          </button>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Recipient Name</label>
+            <input
+              type="text"
+              placeholder="e.g. Manheim Auto Auctions"
+              value={form.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#171717] transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Bank Name</label>
+            <input
+              type="text"
+              placeholder="e.g. Chase Bank"
+              value={form.bank}
+              onChange={(e) => handleChange("bank", e.target.value)}
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#171717] transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Account Number</label>
+            <input
+              type="text"
+              placeholder="ABA routing / account number"
+              value={form.account}
+              onChange={(e) => handleChange("account", e.target.value)}
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#171717] transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-semibold text-[#374151] mb-1.5 block">Account Type</label>
+            <select
+              value={form.accountType}
+              onChange={(e) => handleChange("accountType", e.target.value)}
+              className="w-full border border-[#eaeaea] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#171717] transition-colors bg-white"
+            >
+              <option value="Checking">Checking</option>
+              <option value="Savings">Savings</option>
+            </select>
+          </div>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 border-2 border-[#e5e7eb] text-[#374151] rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#f9fafb] transition-colors"
+            >
+              Cancel
+            </button>
+            <button className="flex-1 bg-[#171717] text-white rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#333] transition-colors">
+              Save Recipient
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Wallet Tab ───────────────────────────────────────────────────────────────
+const savedRecipients = [
+  { initials: "MA", color: "bg-[#dbeafe] text-[#1d4ed8]", name: "Manheim Auto Auctions", aba: "ABA 021000021", bank: "Chase Bank" },
+  { initials: "CP", color: "bg-[#fef9c3] text-[#854d0e]", name: "Copart, Inc.",           aba: "ABA 026009593", bank: "Bank of America" },
+  { initials: "AA", color: "bg-[#f0fdf4] text-[#166534]", name: "Adesa Auto Auction",     aba: "ABA 111000025", bank: "Wells Fargo" },
+];
+
+const walletTransactions = [
+  { icon: "↑", iconBg: "bg-[#f0fdf4]", iconColor: "text-[#16a34a]", desc: "Added ₦500,000 via Paystack", date: "Apr 10, 2026", status: "Completed", statusColor: "bg-[#f0fdf4] text-[#16a34a]", dot: "bg-[#16a34a]" },
+  { icon: "↔", iconBg: "bg-[#eff6ff]", iconColor: "text-[#2563eb]", desc: "Converted ₦500,000 → $350.00", date: "Apr 10, 2026", status: "Completed", statusColor: "bg-[#f0fdf4] text-[#16a34a]", dot: "bg-[#16a34a]" },
+  { icon: "→", iconBg: "bg-[#eff6ff]", iconColor: "text-[#2563eb]", desc: "Payment to Manheim · $350.00", date: "Apr 10, 2026", status: "Processed", statusColor: "bg-[#eff6ff] text-[#2563eb]", dot: "bg-[#2563eb]" },
+];
+
+function WalletTab() {
+  const [addMoneyOpen, setAddMoneyOpen] = useState(false);
+  const [makePaymentOpen, setMakePaymentOpen] = useState(false);
+  const [addRecipientOpen, setAddRecipientOpen] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-5">
+      {/* Modals */}
+      {addMoneyOpen && <AddMoneyModal onClose={() => setAddMoneyOpen(false)} />}
+      {makePaymentOpen && <MakePaymentModal onClose={() => setMakePaymentOpen(false)} />}
+      {addRecipientOpen && <AddRecipientModal onClose={() => setAddRecipientOpen(false)} />}
+
+      {/* Wallet cards */}
+      <div className="flex flex-col sm:flex-row gap-4 items-stretch">
+        {/* NGN Wallet */}
+        <div className="flex-1 bg-white rounded-2xl border border-[#f0f0f0] p-5 flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[18px]">🇳🇬</span>
+            <span className="text-[12px] font-semibold text-[#6b7280] tracking-[0.2px]">NGN Wallet</span>
+          </div>
+          <div>
+            <p className="text-[28px] lg:text-[32px] font-bold text-[#111827] leading-none tracking-tight">₦ 0.00</p>
+            <p className="text-[11px] text-[#9ca3af] mt-1">Available Naira Balance</p>
+          </div>
+          <div className="flex gap-2 mt-auto">
+            <button
+              onClick={() => setAddMoneyOpen(true)}
+              className="flex-1 bg-[#171717] text-white rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#333] transition-colors"
+            >
+              Add Money
+            </button>
+            <button className="flex-1 border-2 border-[#e5e7eb] text-[#374151] rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#f9fafb] transition-colors">
+              Withdraw
+            </button>
+          </div>
+        </div>
+
+        {/* Convert button (between cards on mobile, centered on desktop) */}
+        <div className="flex sm:flex-col items-center justify-center">
+          <button className="flex items-center gap-1.5 bg-[#f3f4f6] hover:bg-[#e5e7eb] text-[#374151] font-semibold text-[12px] px-4 py-2 rounded-full transition-colors border border-[#e5e7eb] whitespace-nowrap">
+            Convert ↔
+          </button>
+        </div>
+
+        {/* USD Wallet */}
+        <div className="flex-1 bg-white rounded-2xl border border-[#f0f0f0] p-5 flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[18px]">🇺🇸</span>
+            <span className="text-[12px] font-semibold text-[#6b7280] tracking-[0.2px]">USD Wallet</span>
+          </div>
+          <div>
+            <p className="text-[28px] lg:text-[32px] font-bold text-[#111827] leading-none tracking-tight">$ 0.00</p>
+            <p className="text-[11px] text-[#9ca3af] mt-1">Available Dollar Balance</p>
+          </div>
+          <div className="flex gap-2 mt-auto">
+            <button
+              onClick={() => setMakePaymentOpen(true)}
+              className="flex-1 bg-[#171717] text-white rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#333] transition-colors"
+            >
+              Make Payment
+            </button>
+            <button
+              onClick={() => setAddRecipientOpen(true)}
+              className="flex-1 border-2 border-[#e5e7eb] text-[#374151] rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#f9fafb] transition-colors"
+            >
+              Add Recipient
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Saved Recipients */}
+      <div className="bg-white rounded-2xl border border-[#f0f0f0] p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-[14px] lg:text-[15px] font-semibold text-[#111827]">Saved Recipients</h2>
+          <button
+            onClick={() => setAddRecipientOpen(true)}
+            className="text-[11px] font-semibold text-[#6b7280] hover:text-[#111827] transition-colors flex items-center gap-1"
+          >
+            + Add New
+          </button>
+        </div>
+        <div className="flex flex-col gap-2">
+          {savedRecipients.map((r, i) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-[#f3f4f6] bg-[#fafafa] hover:border-[#e5e7eb] transition-colors">
+              <div className={`w-9 h-9 rounded-xl ${r.color} flex items-center justify-center shrink-0 font-bold text-[12px]`}>
+                {r.initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-semibold text-[#111827] truncate">{r.name}</p>
+                <p className="text-[10px] text-[#9ca3af]">{r.aba} · {r.bank}</p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button className="bg-[#171717] text-white rounded-lg px-2.5 py-1.5 text-[10px] font-semibold hover:bg-[#333] transition-colors whitespace-nowrap">
+                  Send Money
+                </button>
+                <button className="p-1.5 rounded-lg text-[#6b7280] hover:text-[#374151] hover:bg-[#f3f4f6] transition-colors">
+                  <Icon d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" size={13} strokeWidth={1.8} />
+                </button>
+                <button className="p-1.5 rounded-lg text-[#6b7280] hover:text-[#dc2626] hover:bg-[#fef2f2] transition-colors">
+                  <Icon d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" size={13} strokeWidth={1.8} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent Wallet Activity */}
+      <div className="bg-white rounded-2xl border border-[#f0f0f0] p-5">
+        <h2 className="text-[14px] lg:text-[15px] font-semibold text-[#111827] mb-4">Recent Wallet Activity</h2>
+        <div className="flex flex-col gap-2">
+          {walletTransactions.map((tx, i) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-[#f3f4f6] bg-[#fafafa]">
+              <div className={`w-8 h-8 rounded-lg ${tx.iconBg} flex items-center justify-center shrink-0 font-bold text-[14px] ${tx.iconColor}`}>
+                {tx.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-semibold text-[#111827] truncate">{tx.desc}</p>
+                <p className="text-[10px] text-[#9ca3af]">{tx.date}</p>
+              </div>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] lg:text-[10px] font-semibold ${tx.statusColor} shrink-0`}>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${tx.dot}`} />
+                {tx.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
 const bottomNavItems = [
   { id: "dashboard", label: "Home",      icon: ["M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z","M9 22V12h6v10"] },
@@ -799,7 +1172,10 @@ export default function DashboardPage() {
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#e53e3e] text-white text-[9px] font-bold rounded-full flex items-center justify-center">2</span>
             </button>
             {/* Wallet */}
-            <button className="flex items-center gap-1.5 lg:gap-2 px-2.5 lg:px-3 py-2 rounded-xl border border-[#f0f0f0] bg-white hover:border-[#d1d5db] transition-colors">
+            <button
+              onClick={() => setActiveTab("wallet")}
+              className="flex items-center gap-1.5 lg:gap-2 px-2.5 lg:px-3 py-2 rounded-xl border border-[#f0f0f0] bg-white hover:border-[#d1d5db] transition-colors"
+            >
               <div className="w-4 h-4 lg:w-5 lg:h-5 rounded bg-[#1f2937] flex items-center justify-center">
                 <Icon d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" size={11} stroke="white" strokeWidth={1.8} />
               </div>
@@ -828,7 +1204,7 @@ export default function DashboardPage() {
           >
             <main className="px-4 lg:px-7 py-4 lg:py-6 pb-24 lg:pb-8">
 
-              {/* Tabs */}
+              {/* Tabs — always visible */}
               <div className="flex items-center gap-0 border-b border-[#f0f0f0] mb-4">
                 {["overview", "wallet"].map((tab) => (
                   <button key={tab} onClick={() => setActiveTab(tab)}
@@ -839,45 +1215,51 @@ export default function DashboardPage() {
                 ))}
               </div>
 
-              {/* Time filter */}
-              <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-5">
-                <div className="flex items-center gap-0.5 lg:gap-1 bg-white border border-[#f0f0f0] rounded-xl p-1">
-                  {timeFilters.map((t) => (
-                    <button key={t} onClick={() => setActiveTime(t)}
-                      className={`px-2.5 lg:px-3 py-1.5 rounded-lg text-[11px] lg:text-[12px] font-semibold transition-colors ${activeTime === t ? "bg-[#111827] text-white" : "text-[#9ca3af] hover:text-[#374151]"}`}
-                    >{t}</button>
-                  ))}
-                </div>
-                <p className="text-[11px] lg:text-[12px] text-[#9ca3af] hidden sm:block">
-                  Showing data <span className="font-semibold text-[#374151]">for last 30 days</span>
-                </p>
-              </div>
+              {activeTab === "wallet" ? (
+                <WalletTab />
+              ) : (
+                <>
+                  {/* Time filter */}
+                  <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-5">
+                    <div className="flex items-center gap-0.5 lg:gap-1 bg-white border border-[#f0f0f0] rounded-xl p-1">
+                      {timeFilters.map((t) => (
+                        <button key={t} onClick={() => setActiveTime(t)}
+                          className={`px-2.5 lg:px-3 py-1.5 rounded-lg text-[11px] lg:text-[12px] font-semibold transition-colors ${activeTime === t ? "bg-[#111827] text-white" : "text-[#9ca3af] hover:text-[#374151]"}`}
+                        >{t}</button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] lg:text-[12px] text-[#9ca3af] hidden sm:block">
+                      Showing data <span className="font-semibold text-[#374151]">for last 30 days</span>
+                    </p>
+                  </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-5">
-                <StatCard label="My Bids"   value="5.00"          sub="All active bids" />
-                <StatCard label="Purchases" value="40.00"         sub="Vehicle Purchased" />
-                <StatCard label="Payment"   value="₦40,000,000." sub="Total payments" />
-                <StatCard label="Shipment"  value="4.00"          sub="In transit" />
-              </div>
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-5">
+                    <StatCard label="My Bids"   value="5.00"          sub="All active bids" />
+                    <StatCard label="Purchases" value="40.00"         sub="Vehicle Purchased" />
+                    <StatCard label="Payment"   value="₦40,000,000." sub="Total payments" />
+                    <StatCard label="Shipment"  value="4.00"          sub="In transit" />
+                  </div>
 
-              {/* Pipeline */}
-              <div className="mb-4 lg:mb-5">
-                <StatusPipeline />
-              </div>
+                  {/* Pipeline */}
+                  <div className="mb-4 lg:mb-5">
+                    <StatusPipeline />
+                  </div>
 
-              {/* Payments + Sourcing */}
-              <div className="flex flex-col lg:flex-row gap-4 mb-4 lg:mb-5">
-                <div className="lg:flex-1"><PendingPayments /></div>
-                <div className="lg:flex-1"><SourcingBreakdown /></div>
-              </div>
+                  {/* Payments + Sourcing */}
+                  <div className="flex flex-col lg:flex-row gap-4 mb-4 lg:mb-5">
+                    <div className="lg:flex-1"><PendingPayments /></div>
+                    <div className="lg:flex-1"><SourcingBreakdown /></div>
+                  </div>
 
-              {/* Activity */}
-              <RecentActivity />
+                  {/* Activity */}
+                  <RecentActivity />
 
-              <div className="flex items-center justify-end mt-4 pb-2">
-                <p className="text-[10px] lg:text-[11px] text-[#9ca3af]">Last updated Feb 14, 2026 14:35:12</p>
-              </div>
+                  <div className="flex items-center justify-end mt-4 pb-2">
+                    <p className="text-[10px] lg:text-[11px] text-[#9ca3af]">Last updated Feb 14, 2026 14:35:12</p>
+                  </div>
+                </>
+              )}
             </main>
           </div>
 
