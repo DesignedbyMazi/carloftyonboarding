@@ -813,7 +813,7 @@ export default function DashboardPage() {
         {!showTour && !allComplete && (
           <ProfileHanger
             completedTasks={completedTasks}
-            onComplete={(id) => setCompletedTasks(prev => new Set([...prev, id]))}
+            onComplete={(id) => setCompletedTasks(prev => new Set(Array.from(prev).concat(id)))}
             collapsed={hangerCollapsed}
             onToggle={() => setHangerCollapsed(v => !v)}
           />
