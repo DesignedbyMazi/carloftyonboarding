@@ -16,7 +16,8 @@
       "mcp__917b74a0-8555-4f88-8578-52d3b910faee__web_fetch_vercel_url",
       "mcp__917b74a0-8555-4f88-8578-52d3b910faee__list_teams",
       "mcp__917b74a0-8555-4f88-8578-52d3b910faee__list_deployments",
-      "mcp__917b74a0-8555-4f88-8578-52d3b910faee__get_deployment_build_logs"
+      "mcp__917b74a0-8555-4f88-8578-52d3b910faee__get_deployment_build_logs",
+      "mcp__917b74a0-8555-4f88-8578-52d3b910faee__list_projects"
     ]
   }
 }
