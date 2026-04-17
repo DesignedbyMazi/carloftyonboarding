@@ -66,7 +66,12 @@ export default function CompletePage() {
         </div>
 
         <button
-          onClick={() => router.push("/dashboard")}
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              localStorage.setItem("carlofty_kyb_complete", "true");
+            }
+            router.push("/dashboard");
+          }}
           className="w-full bg-[#171717] text-white rounded-2xl py-3 text-base font-medium leading-6 tracking-[0.08px] hover:bg-[#333] transition-colors"
         >
           Go to Dashboard

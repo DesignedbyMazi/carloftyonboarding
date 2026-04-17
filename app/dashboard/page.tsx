@@ -1,6 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+const BRIDGE_URL = "https://bridge.withpersona.com";
 
 // ─── Icon helper ──────────────────────────────────────────────────────────────
 function Icon({
@@ -81,6 +83,10 @@ interface TourStep {
   /** Desktop tooltip anchor position */
   pos: "center" | "top-right" | "top-left" | "bottom-right" | "bottom-left";
   isFinal?: boolean;
+  /** ID of the DOM element to scroll into view when this step is active */
+  sectionId?: string;
+  /** Tab to switch to when this step is active */
+  targetTab?: "overview" | "wallet";
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -93,71 +99,99 @@ const TOUR_STEPS: TourStep[] = [
     title: "Sidebar Navigation",
     description: "Switch between Dashboard, My Bids, Purchases, Payments, Shipments, Support, and Settings from the sidebar.",
     pos: "top-left",
+    sectionId: "tour-sidebar",
+    targetTab: "overview",
   },
   {
     title: "Key Metrics at a Glance",
     description: "Your four headline numbers — active bids, total purchases, payments made, and vehicles in transit — updated in real time.",
     pos: "top-right",
+    sectionId: "tour-stats",
+    targetTab: "overview",
   },
   {
     title: "Status Pipeline",
     description: "Track every vehicle from bid request through payment, shipping, and delivery — all six stages in one view.",
     pos: "top-right",
+    sectionId: "tour-pipeline",
+    targetTab: "overview",
   },
   {
     title: "Pending Payments",
     description: "Vehicles with outstanding or overdue payments surface here. Red items need urgent attention to protect your bids.",
     pos: "bottom-right",
+    sectionId: "tour-payments",
+    targetTab: "overview",
   },
   {
     title: "Sourcing Breakdown",
     description: "See how your spending is distributed across Manheim, Copart, Adesa, IAA, and other auction platforms.",
     pos: "bottom-left",
+    sectionId: "tour-sourcing",
+    targetTab: "overview",
   },
   {
     title: "Recent Activity",
     description: "A full log of every payment transaction. Filter by date, auction, status, or payment type to find anything instantly.",
     pos: "bottom-left",
+    sectionId: "tour-activity",
+    targetTab: "overview",
   },
   {
     title: "Notifications",
     description: "Real-time alerts for bid wins, payment deadlines, shipment updates, and important account events.",
     pos: "top-right",
+    sectionId: "tour-notifications",
+    targetTab: "overview",
   },
   {
     title: "Wallet Balance",
     description: "Click the Wallet tab to manage your NGN and USD balances. All auction payments are made in USD.",
     pos: "top-right",
+    sectionId: "tour-tabs",
+    targetTab: "overview",
   },
   {
     title: "Your Wallets",
     description: "The Wallet tab holds two balances — your NGN (Naira) wallet and your USD (Dollar) wallet. All auction payments are made in USD, so you must fund NGN first then convert.",
     pos: "top-right",
+    sectionId: "tour-wallet-cards",
+    targetTab: "wallet",
   },
   {
     title: "Add Money",
     description: "Fund your NGN wallet with Naira using Paystack. Once funds are confirmed, your Naira balance updates instantly and you're ready to convert.",
     pos: "top-right",
+    sectionId: "tour-add-money",
+    targetTab: "wallet",
   },
   {
     title: "Convert NGN → USD",
     description: "Convert your Naira balance to USD at the live exchange rate. Payments to auction houses are strictly in USD — convert before attempting to pay.",
     pos: "top-right",
+    sectionId: "tour-convert",
+    targetTab: "wallet",
   },
   {
     title: "Make a Payment",
     description: "Pay auction houses directly from your USD wallet by entering the recipient's bank details, amount, and a payment reference. No intermediaries.",
     pos: "top-right",
+    sectionId: "tour-make-payment",
+    targetTab: "wallet",
   },
   {
     title: "Saved Recipients",
     description: "Save frequently used auction accounts as recipients so you can send money in one tap. Edit or delete saved recipients any time.",
     pos: "bottom-right",
+    sectionId: "tour-recipients",
+    targetTab: "wallet",
   },
   {
     title: "Time & Date Filters",
     description: "Narrow all dashboard data to the last 24 hours, 7 days, 1 month, or 12 months with a single click.",
     pos: "top-left",
+    sectionId: "tour-time-filter",
+    targetTab: "overview",
   },
   {
     title: "You're almost ready! 🚀",
@@ -175,22 +209,38 @@ const DESKTOP_POS: Record<TourStep["pos"], string> = {
   "bottom-left":  "bottom-10 left-[200px] xl:left-[220px]",
 };
 
-function OnboardingTour({ onClose }: { onClose: () => void }) {
+function OnboardingTour({ onClose, onSwitchTab }: { onClose: () => void; onSwitchTab: (tab: "overview" | "wallet") => void }) {
   const [step, setStep] = useState(0);
+  const [visible, setVisible] = useState(true);
   const current = TOUR_STEPS[step];
   const total = TOUR_STEPS.length;
   const isFirst = step === 0;
   const isLast = step === total - 1;
 
-  const next = () => { if (isLast) onClose(); else setStep(s => s + 1); };
-  const back = () => { if (step > 0) setStep(s => s - 1); };
+  const goToStep = (newStep: number) => {
+    setVisible(false);
+    setTimeout(() => {
+      const target = TOUR_STEPS[newStep];
+      if (target.targetTab) onSwitchTab(target.targetTab);
+      setStep(newStep);
+      setVisible(true);
+      if (target.sectionId) {
+        setTimeout(() => {
+          document.getElementById(target.sectionId!)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 80);
+      }
+    }, 180);
+  };
+
+  const next = () => { if (isLast) onClose(); else goToStep(step + 1); };
+  const back = () => { if (step > 0) goToStep(step - 1); };
 
   const DotRow = ({ size = "default" }: { size?: "default" | "small" }) => (
     <div className={`flex items-center gap-1.5 ${size === "small" ? "gap-1" : ""}`}>
       {TOUR_STEPS.map((_, i) => (
         <button
           key={i}
-          onClick={() => setStep(i)}
+          onClick={() => goToStep(i)}
           className={`rounded-full transition-all ${
             i === step
               ? size === "small" ? "w-4 h-1 bg-[#171717]" : "w-5 h-1.5 bg-[#171717]"
@@ -226,7 +276,7 @@ function OnboardingTour({ onClose }: { onClose: () => void }) {
       <div className="absolute inset-0 bg-black/65" />
 
       {/* ── Desktop tooltip ── */}
-      <div className={`absolute hidden lg:flex ${DESKTOP_POS[current.pos]} w-[340px] flex-col bg-white rounded-2xl shadow-2xl z-10 p-6`}>
+      <div className={`absolute hidden lg:flex ${DESKTOP_POS[current.pos]} w-[340px] flex-col bg-white rounded-2xl shadow-2xl z-10 p-6 transition-all duration-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
         {/* Close */}
         <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-lg text-[#9ca3af] hover:text-[#374151] hover:bg-[#f3f4f6] transition-colors">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -270,7 +320,7 @@ function OnboardingTour({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* ── Mobile bottom sheet ── */}
-      <div className="absolute bottom-0 left-0 right-0 lg:hidden bg-white rounded-t-2xl shadow-2xl z-10 p-5 pb-7">
+      <div className={`absolute bottom-0 left-0 right-0 lg:hidden bg-white rounded-t-2xl shadow-2xl z-10 p-5 pb-7 transition-all duration-200 ${visible ? "opacity-100 translate-y-0" : "opacity-100 translate-y-2"}`}>
         <button onClick={onClose} className="absolute top-4 right-4 p-1 text-[#9ca3af] hover:text-[#374151]">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
             <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
@@ -322,7 +372,7 @@ const PROFILE_TASKS: ProfileTask[] = [
     title: "Bridge Verification",
     description: "Connect Bridge to enable payments and fund your wallet",
     ctaLabel: "Connect Bridge",
-    route: "/",
+    route: BRIDGE_URL,
     iconPath: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z",
     iconBg: "bg-[#f5f3ff]",
     iconStroke: "#7c3aed",
@@ -457,7 +507,13 @@ function ProfileHanger({
                     <span className="text-[11px] font-semibold text-[#16a34a]">✓ Complete</span>
                   ) : (
                     <button
-                      onClick={() => router.push(task.route)}
+                      onClick={() => {
+                        if (task.id === "bridge") {
+                          window.open(task.route, "_blank");
+                        } else {
+                          router.push(task.route);
+                        }
+                      }}
                       className={`text-[11px] font-semibold px-3 py-1.5 rounded-lg border transition-colors ${task.ctaClass}`}
                     >
                       {task.ctaLabel} →
@@ -965,10 +1021,18 @@ const walletTransactions = [
   { icon: "→", iconBg: "bg-[#eff6ff]", iconColor: "text-[#2563eb]", desc: "Payment to Manheim · $350.00", date: "Apr 10, 2026", status: "Processed", statusColor: "bg-[#eff6ff] text-[#2563eb]", dot: "bg-[#2563eb]" },
 ];
 
-function WalletTab() {
+function WalletTab({ bridgeVerified }: { bridgeVerified: boolean }) {
   const [addMoneyOpen, setAddMoneyOpen] = useState(false);
   const [makePaymentOpen, setMakePaymentOpen] = useState(false);
   const [addRecipientOpen, setAddRecipientOpen] = useState(false);
+
+  const handleMakePayment = () => {
+    if (!bridgeVerified) {
+      window.open(BRIDGE_URL, "_blank");
+    } else {
+      setMakePaymentOpen(true);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -978,7 +1042,7 @@ function WalletTab() {
       {addRecipientOpen && <AddRecipientModal onClose={() => setAddRecipientOpen(false)} />}
 
       {/* Wallet cards */}
-      <div className="flex flex-col sm:flex-row gap-4 items-stretch">
+      <div id="tour-wallet-cards" className="flex flex-col sm:flex-row gap-4 items-stretch">
         {/* NGN Wallet */}
         <div className="flex-1 bg-white rounded-2xl border border-[#f0f0f0] p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2">
@@ -989,7 +1053,7 @@ function WalletTab() {
             <p className="text-[28px] lg:text-[32px] font-bold text-[#111827] leading-none tracking-tight">₦ 0.00</p>
             <p className="text-[11px] text-[#9ca3af] mt-1">Available Naira Balance</p>
           </div>
-          <div className="flex gap-2 mt-auto">
+          <div id="tour-add-money" className="flex gap-2 mt-auto">
             <button
               onClick={() => setAddMoneyOpen(true)}
               className="flex-1 bg-[#171717] text-white rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#333] transition-colors"
@@ -1003,7 +1067,7 @@ function WalletTab() {
         </div>
 
         {/* Convert button (between cards on mobile, centered on desktop) */}
-        <div className="flex sm:flex-col items-center justify-center">
+        <div id="tour-convert" className="flex sm:flex-col items-center justify-center">
           <button className="flex items-center gap-1.5 bg-[#f3f4f6] hover:bg-[#e5e7eb] text-[#374151] font-semibold text-[12px] px-4 py-2 rounded-full transition-colors border border-[#e5e7eb] whitespace-nowrap">
             Convert ↔
           </button>
@@ -1021,10 +1085,11 @@ function WalletTab() {
           </div>
           <div className="flex gap-2 mt-auto">
             <button
-              onClick={() => setMakePaymentOpen(true)}
+              id="tour-make-payment"
+              onClick={handleMakePayment}
               className="flex-1 bg-[#171717] text-white rounded-xl py-2.5 text-[13px] font-semibold hover:bg-[#333] transition-colors"
             >
-              Make Payment
+              {bridgeVerified ? "Make Payment" : "Make Payment 🔒"}
             </button>
             <button
               onClick={() => setAddRecipientOpen(true)}
@@ -1037,7 +1102,7 @@ function WalletTab() {
       </div>
 
       {/* Saved Recipients */}
-      <div className="bg-white rounded-2xl border border-[#f0f0f0] p-5">
+      <div id="tour-recipients" className="bg-white rounded-2xl border border-[#f0f0f0] p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[14px] lg:text-[15px] font-semibold text-[#111827]">Saved Recipients</h2>
           <button
@@ -1110,18 +1175,49 @@ const bottomNavItems = [
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeNav, setActiveNav]         = useState("dashboard");
-  const [activeTab, setActiveTab]         = useState("overview");
+  const [activeTab, setActiveTab]         = useState<"overview" | "wallet">("overview");
   const [activeTime, setActiveTime]       = useState("1M");
   const [drawerOpen, setDrawerOpen]       = useState(false);
 
   // Tour + profile completion state
-  const [showTour, setShowTour]           = useState(true);
+  const [showTour, setShowTour]           = useState(false); // hydrated from localStorage
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [hangerCollapsed, setHangerCollapsed] = useState(false);
+  const [hydrated, setHydrated]           = useState(false);
 
-  const allComplete  = completedTasks.size === PROFILE_TASKS.length;
-  // Content is blurred after tour is dismissed, until all tasks are done
-  const contentBlurred = !showTour && !allComplete;
+  // ── Restore state from localStorage on first mount ──
+  useEffect(() => {
+    const tourSeen = localStorage.getItem("carlofty_tour_seen") === "true";
+    const savedTasks: string[] = JSON.parse(localStorage.getItem("carlofty_completed_tasks") || "[]");
+    const kybDone = localStorage.getItem("carlofty_kyb_complete") === "true";
+
+    const restored = new Set<string>(savedTasks);
+    if (kybDone) restored.add("kyb");
+
+    setCompletedTasks(restored);
+    setShowTour(!tourSeen);
+    setHydrated(true);
+  }, []);
+
+  // ── Persist completed tasks whenever they change ──
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem("carlofty_completed_tasks", JSON.stringify(Array.from(completedTasks)));
+  }, [completedTasks, hydrated]);
+
+  const handleComplete = (id: string) => {
+    setCompletedTasks(prev => new Set(Array.from(prev).concat(id)));
+  };
+
+  const handleCloseTour = () => {
+    localStorage.setItem("carlofty_tour_seen", "true");
+    setShowTour(false);
+  };
+
+  const allComplete = completedTasks.size === PROFILE_TASKS.length;
+  const bridgeVerified = completedTasks.has("bridge");
+  // Blur content until at least ONE task is completed (after tour is dismissed)
+  const contentBlurred = !showTour && completedTasks.size === 0;
 
   const timeFilters = ["12M", "1M", "7D", "24H"];
 
@@ -1129,10 +1225,10 @@ export default function DashboardPage() {
     <div className="flex h-full bg-[#f9fafb]">
 
       {/* ── Onboarding Tour overlay ── */}
-      {showTour && <OnboardingTour onClose={() => setShowTour(false)} />}
+      {showTour && <OnboardingTour onClose={handleCloseTour} onSwitchTab={setActiveTab} />}
 
       {/* ── Desktop Sidebar ── */}
-      <aside className="hidden lg:flex h-full w-[168px] shrink-0 flex-col border-r border-[#f0f0f0]">
+      <aside id="tour-sidebar" className="hidden lg:flex h-full w-[168px] shrink-0 flex-col border-r border-[#f0f0f0]">
         <SidebarContent active={activeNav} onNav={setActiveNav} />
       </aside>
 
@@ -1167,7 +1263,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-2 lg:gap-3">
             {/* Notification bell */}
-            <button className="relative w-8 h-8 lg:w-9 lg:h-9 rounded-xl border border-[#f0f0f0] bg-white flex items-center justify-center hover:border-[#d1d5db] transition-colors">
+            <button id="tour-notifications" className="relative w-8 h-8 lg:w-9 lg:h-9 rounded-xl border border-[#f0f0f0] bg-white flex items-center justify-center hover:border-[#d1d5db] transition-colors">
               <Icon d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" size={15} strokeWidth={1.8} stroke="#374151" />
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#e53e3e] text-white text-[9px] font-bold rounded-full flex items-center justify-center">2</span>
             </button>
@@ -1185,11 +1281,11 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* ── Profile Completion Hanger (shown after tour is dismissed) ── */}
+        {/* ── Profile Completion Hanger (shown after tour is dismissed until all done) ── */}
         {!showTour && !allComplete && (
           <ProfileHanger
             completedTasks={completedTasks}
-            onComplete={(id) => setCompletedTasks(prev => new Set(Array.from(prev).concat(id)))}
+            onComplete={handleComplete}
             collapsed={hangerCollapsed}
             onToggle={() => setHangerCollapsed(v => !v)}
           />
@@ -1205,7 +1301,7 @@ export default function DashboardPage() {
             <main className="px-4 lg:px-7 py-4 lg:py-6 pb-24 lg:pb-8">
 
               {/* Tabs — always visible */}
-              <div className="flex items-center gap-0 border-b border-[#f0f0f0] mb-4">
+              <div id="tour-tabs" className="flex items-center gap-0 border-b border-[#f0f0f0] mb-4">
                 {["overview", "wallet"].map((tab) => (
                   <button key={tab} onClick={() => setActiveTab(tab)}
                     className={`px-3 lg:px-4 py-2 lg:py-2.5 text-[12px] lg:text-[13px] font-medium capitalize transition-colors border-b-2 -mb-px ${activeTab === tab ? "border-[#111827] text-[#111827]" : "border-transparent text-[#9ca3af] hover:text-[#374151]"}`}
@@ -1216,11 +1312,11 @@ export default function DashboardPage() {
               </div>
 
               {activeTab === "wallet" ? (
-                <WalletTab />
+                <WalletTab bridgeVerified={bridgeVerified} />
               ) : (
                 <>
                   {/* Time filter */}
-                  <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-5">
+                  <div id="tour-time-filter" className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-5">
                     <div className="flex items-center gap-0.5 lg:gap-1 bg-white border border-[#f0f0f0] rounded-xl p-1">
                       {timeFilters.map((t) => (
                         <button key={t} onClick={() => setActiveTime(t)}
@@ -1234,7 +1330,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Stats */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-5">
+                  <div id="tour-stats" className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-5">
                     <StatCard label="My Bids"   value="5.00"          sub="All active bids" />
                     <StatCard label="Purchases" value="40.00"         sub="Vehicle Purchased" />
                     <StatCard label="Payment"   value="₦40,000,000." sub="Total payments" />
@@ -1242,18 +1338,18 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Pipeline */}
-                  <div className="mb-4 lg:mb-5">
+                  <div id="tour-pipeline" className="mb-4 lg:mb-5">
                     <StatusPipeline />
                   </div>
 
                   {/* Payments + Sourcing */}
                   <div className="flex flex-col lg:flex-row gap-4 mb-4 lg:mb-5">
-                    <div className="lg:flex-1"><PendingPayments /></div>
-                    <div className="lg:flex-1"><SourcingBreakdown /></div>
+                    <div id="tour-payments" className="lg:flex-1"><PendingPayments /></div>
+                    <div id="tour-sourcing" className="lg:flex-1"><SourcingBreakdown /></div>
                   </div>
 
                   {/* Activity */}
-                  <RecentActivity />
+                  <div id="tour-activity"><RecentActivity /></div>
 
                   <div className="flex items-center justify-end mt-4 pb-2">
                     <p className="text-[10px] lg:text-[11px] text-[#9ca3af]">Last updated Feb 14, 2026 14:35:12</p>
