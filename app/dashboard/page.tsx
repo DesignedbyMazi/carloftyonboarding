@@ -1302,7 +1302,7 @@ export default function DashboardPage() {
 
               {/* Tabs — always visible */}
               <div id="tour-tabs" className="flex items-center gap-0 border-b border-[#f0f0f0] mb-4">
-                {["overview", "wallet"].map((tab) => (
+                {(["overview", "wallet"] as const).map((tab) => (
                   <button key={tab} onClick={() => setActiveTab(tab)}
                     className={`px-3 lg:px-4 py-2 lg:py-2.5 text-[12px] lg:text-[13px] font-medium capitalize transition-colors border-b-2 -mb-px ${activeTab === tab ? "border-[#111827] text-[#111827]" : "border-transparent text-[#9ca3af] hover:text-[#374151]"}`}
                   >
