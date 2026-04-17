@@ -98,7 +98,12 @@ export default function PaymentPage() {
         {/* CTA */}
         <button
           disabled={!method}
-          onClick={() => router.push("/onboarding")}
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              localStorage.setItem("carlofty_license_complete", "true");
+            }
+            router.push("/dashboard");
+          }}
           className={`w-full rounded-2xl py-3.5 text-[15px] font-semibold tracking-[0.1px] transition-colors ${
             method ? "bg-[#171717] text-white hover:bg-[#333]" : "bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed"
           }`}

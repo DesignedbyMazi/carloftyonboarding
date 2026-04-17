@@ -1187,12 +1187,14 @@ export default function DashboardPage() {
 
   // ── Restore state from localStorage on first mount ──
   useEffect(() => {
-    const tourSeen = localStorage.getItem("carlofty_tour_seen") === "true";
+    const tourSeen    = localStorage.getItem("carlofty_tour_seen")      === "true";
+    const kybDone     = localStorage.getItem("carlofty_kyb_complete")   === "true";
+    const licenseDone = localStorage.getItem("carlofty_license_complete") === "true";
     const savedTasks: string[] = JSON.parse(localStorage.getItem("carlofty_completed_tasks") || "[]");
-    const kybDone = localStorage.getItem("carlofty_kyb_complete") === "true";
 
     const restored = new Set<string>(savedTasks);
-    if (kybDone) restored.add("kyb");
+    if (kybDone)     restored.add("kyb");
+    if (licenseDone) restored.add("license");
 
     setCompletedTasks(restored);
     setShowTour(!tourSeen);
